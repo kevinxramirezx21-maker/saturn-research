@@ -33,8 +33,8 @@ async function fetchLiveTokens() {
     });
     return currentTokens;
   } catch (e) {
-    console.warn('CoinGecko API limit or error — using fallback');
-    return currentTokens.length ? currentTokens : getFallbackTokens();
+    console.warn('CoinGecko API error — using fallback');
+    return getFallbackTokens();
   }
 }
 
@@ -46,7 +46,6 @@ function getFallbackTokens() {
     { symbol: "AI", name: "Satoshi AI", price: 0.85, mcap: "85M", upside: "42x", score: 91,
       tokenomics: { fdv: "3.8B", locked: "75%", team: "12%" },
       institutional: ["Binance Labs"], news: "AI agent launch on Solana", projection: "Target $35 in 18mo" }
-    // Add more here if you want
   ];
 }
 
@@ -74,29 +73,22 @@ function filterTokens() {
   const query = document.getElementById('search').value.toLowerCase();
   const resultsDiv = document.getElementById('results');
   const cards = resultsDiv.querySelectorAll('.card');
-  
   cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.style.display = text.includes(query) ? '' : 'none';
+    card.style.display = card.textContent.toLowerCase().includes(query) ? '' : 'none';
   });
 }
 
 function showDeepDive(symbol) {
-  const token = currentTokens.find(t => t.symbol === symbol) || 
-                getFallbackTokens().find(t => t.symbol === symbol);
+  const token = currentTokens.find(t => t.symbol === symbol) || getFallbackTokens().find(t => t.symbol === symbol);
   if (!token) return;
   
   const html = `
     <h2>${token.name} (${token.symbol})</h2>
     <p><strong>Upside Potential:</strong> <span class="upside">${token.upside}</span></p>
-    <h3>Tokenomics</h3>
-    <pre>${JSON.stringify(token.tokenomics, null, 2)}</pre>
-    <h3>Institutional Backers</h3>
-    <p>${token.institutional.join(' • ')}</p>
-    <h3>Price Projection</h3>
-    <p>${token.projection}</p>
-    <h3>Latest News</h3>
-    <p>${token.news}</p>
+    <h3>Tokenomics</h3><pre>${JSON.stringify(token.tokenomics, null, 2)}</pre>
+    <h3>Institutional Backers</h3><p>${token.institutional.join(' • ')}</p>
+    <h3>Price Projection</h3><p>${token.projection}</p>
+    <h3>Latest News</h3><p>${token.news}</p>
   `;
   document.getElementById('deep-dive').innerHTML = html;
   switchTab(2);
@@ -104,11 +96,8 @@ function showDeepDive(symbol) {
 
 function populateTopPicks() {
   const container = document.getElementById('top-picks');
-  if (!container) return;
-  
   const tokens = currentTokens.length ? currentTokens : getFallbackTokens();
   const top = [...tokens].sort((a,b) => parseFloat(b.upside)-parseFloat(a.upside)).slice(0,20);
-  
   let html = '';
   top.forEach(t => {
     html += `<div class="card"><h3>${t.name} <span class="upside">${t.upside}</span></h3><p>AI Score: ${t.score}/100</p></div>`;
